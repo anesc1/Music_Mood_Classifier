@@ -2,6 +2,8 @@ import os
 import tensorflow as tf
 import librosa
 import numpy as np
+import shutil
+
 class Folder:
     def makeFolders(CurrentPath):
         if not(os.path.isdir(CurrentPath+"/Happy")):
@@ -14,15 +16,15 @@ class Folder:
             os.makedirs(os.path.join(CurrentPath+"/Calm"))
 
 class ML:
-    def MoodClassify(CurrentPath, mp3_files):
+    def MoodClassify(CurrentPath, mp3_files,progressBar):
         model_path = r"C:\Users\anesc\PycharmProjects\Music_Mood_Classifier\model\mfcc"
         num=0
         logits = None
-
-        for items in mp3_files:
+        mp3_num = len(mp3_files)
+        for item in mp3_files:
             num = num + 1
-            files = CurrentPath + "/" + items
-            y, sr = librosa.load(files, duration=30)
+            file = CurrentPath + "/" + item
+            y, sr = librosa.load(file, duration=30)
             S = librosa.feature.melspectrogram(y=y, sr=12000, S=None, n_fft=512, hop_length=256, n_mels=96, fmax=8000)
             MF = librosa.feature.mfcc(S=librosa.power_to_db(S))
             row = MF.shape[0]
@@ -58,5 +60,13 @@ class ML:
                 # Load the weights and bias
                 saver = tf.train.Saver()
                 saver.restore(sess, model_path + "\\" + "model.ckpt")
-                print(items + " predicted : ", sess.run(tf.argmax(logits, axis=1), feed_dict={X: MFCC_data[0:1]}), )
-
+                result = sess.run(tf.argmax(logits, axis=1), feed_dict={X: MFCC_data[0:1]})
+                if(result==0):
+                    shutil.copy(file,CurrentPath+"/Happy")
+                elif(result==1):
+                    shutil.copy(file,CurrentPath+"/Angry")
+                elif (result == 2):
+                    shutil.copy(file, CurrentPath + "/Sad")
+                elif (result == 3):
+                    shutil.copy(file, CurrentPath + "/Calm")
+            progressBar.setProperty("value",(int)((num/mp3_num)*100))

@@ -9,6 +9,7 @@ import Classify
 class Ui_MainWindow(object):
     path = None
     file_list_mp3 = None
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(600, 312)
@@ -47,7 +48,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName("horizontalLayout")
 
         self.progressBar = QtWidgets.QProgressBar(self.widget)
-        self.progressBar.setProperty("value", 24)
+        self.progressBar.setProperty("value", 0)
         self.progressBar.setObjectName("progressBar")
         self.horizontalLayout.addWidget(self.progressBar)
 
@@ -67,10 +68,9 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label.setText(_translate("MainWindow", "TextLabel"))
-        self.pushButton.setText(_translate("MainWindow", "파일 선택"))
-        self.pushButton_2.setText(_translate("MainWindow", "분석"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Music Mood Classifier"))
+        self.pushButton.setText(_translate("MainWindow", "Select Folder"))
+        self.pushButton_2.setText(_translate("MainWindow", "Classify"))
 
 
     def pushButtonClicked(self):
@@ -86,7 +86,7 @@ class Ui_MainWindow(object):
 
     def pushButton_2Clicked(self):
         Classify.Folder.makeFolders(self.path)
-        Classify.ML.MoodClassify(self.path, self.file_list_mp3)
+        Classify.ML.MoodClassify(self.path, self.file_list_mp3,self.progressBar)
 
 if __name__ == "__main__":
     import sys
