@@ -1,6 +1,14 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+import os
+import Classify
+
 
 class Ui_MainWindow(object):
+    path = None
+    file_list_mp3 = None
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(600, 312)
@@ -11,24 +19,44 @@ class Ui_MainWindow(object):
         self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame.setObjectName("frame")
+
         self.label = QtWidgets.QLabel(self.frame)
         self.label.setGeometry(QtCore.QRect(0, 0, 441, 31))
         font = QtGui.QFont()
         font.setFamily("굴림")
         font.setPointSize(10)
-        self.label.setStyleSheet("QLabel { background-color : white; border-style: solid; border-width: 1px; border-color: black;}")
         self.label.setFont(font)
         self.label.setObjectName("label")
+        self.label.setStyleSheet(
+            "QLabel { background-color : white; border-style: solid; border-width: 1px; border-color: black;}")
+
         self.pushButton = QtWidgets.QPushButton(self.frame)
         self.pushButton.setGeometry(QtCore.QRect(440, 0, 111, 31))
         self.pushButton.setObjectName("pushButton")
+        self.pushButton.clicked.connect(self.pushButtonClicked)
+
         self.listView = QtWidgets.QListView(self.centralwidget)
-        self.listView.setGeometry(QtCore.QRect(30, 60, 551, 201))
+        self.listView.setGeometry(QtCore.QRect(30, 60, 551, 191))
         self.listView.setObjectName("listView")
-        self.progressBar = QtWidgets.QProgressBar(self.centralwidget)
-        self.progressBar.setGeometry(QtCore.QRect(30, 270, 561, 23))
+
+        self.widget = QtWidgets.QWidget(self.centralwidget)
+        self.widget.setGeometry(QtCore.QRect(30, 260, 551, 31))
+        self.widget.setObjectName("widget")
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget)
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+
+        self.progressBar = QtWidgets.QProgressBar(self.widget)
         self.progressBar.setProperty("value", 24)
         self.progressBar.setObjectName("progressBar")
+        self.horizontalLayout.addWidget(self.progressBar)
+
+        self.pushButton_2 = QtWidgets.QPushButton(self.widget)
+        self.pushButton_2.setObjectName("pushButton_2")
+        self.horizontalLayout.addWidget(self.pushButton_2)
+        self.pushButton_2.clicked.connect(self.pushButton_2Clicked)
+
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -42,7 +70,23 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label.setText(_translate("MainWindow", "TextLabel"))
         self.pushButton.setText(_translate("MainWindow", "파일 선택"))
+        self.pushButton_2.setText(_translate("MainWindow", "분석"))
 
+
+    def pushButtonClicked(self):
+        self.path = QFileDialog.getExistingDirectory()
+        self.label.setText(self.path)
+        file_list = os.listdir(self.path)
+        self.file_list_mp3 = [file for file in file_list if file.endswith(".mp3")]
+        model = QStandardItemModel()
+        for mp3_files in self.file_list_mp3:
+            model.appendRow(QStandardItem(mp3_files))
+        self.listView.setModel(model)
+
+
+    def pushButton_2Clicked(self):
+        Classify.Folder.makeFolders(self.path)
+        Classify.ML.MoodClassify(self.path, self.file_list_mp3)
 
 if __name__ == "__main__":
     import sys
@@ -53,4 +97,3 @@ if __name__ == "__main__":
     MainWindow.show()
     sys.exit(app.exec_())
 
-    
