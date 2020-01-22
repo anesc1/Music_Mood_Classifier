@@ -4,12 +4,14 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import os
 import Classify
+import  threading
 
 
 class Ui_MainWindow(object):
     path = None
     file_list_mp3 = None
-
+    progressBar = None
+    model = None
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(600, 312)
@@ -78,15 +80,27 @@ class Ui_MainWindow(object):
         self.label.setText(self.path)
         file_list = os.listdir(self.path)
         self.file_list_mp3 = [file for file in file_list if file.endswith(".mp3")]
-        model = QStandardItemModel()
+        self.model = QStandardItemModel()
         for mp3_files in self.file_list_mp3:
-            model.appendRow(QStandardItem(mp3_files))
-        self.listView.setModel(model)
+            self.model.appendRow(QStandardItem(mp3_files))
+        self.listView.setModel(self.model)
+        self.progressBar.setProperty("value", 0)
 
 
     def pushButton_2Clicked(self):
+        self.threadclass = ThreadClass(self.path,self.file_list_mp3,self.progressBar,self.model)
+        self.threadclass.start()
+
+class ThreadClass(threading.Thread):
+    def __init__(self, path, file_list_mp3, progressBar,model):
+        threading.Thread.__init__(self)
+        self.path = path
+        self.file_list_mp3 = file_list_mp3
+        self.progressBar = progressBar
+        self.model = model
+    def run(self):
         Classify.Folder.makeFolders(self.path)
-        Classify.ML.MoodClassify(self.path, self.file_list_mp3,self.progressBar)
+        Classify.ML.MoodClassify(self.path, self.file_list_mp3, self.progressBar,self.model)
 
 if __name__ == "__main__":
     import sys

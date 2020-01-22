@@ -16,7 +16,7 @@ class Folder:
             os.makedirs(os.path.join(CurrentPath+"/Calm"))
 
 class ML:
-    def MoodClassify(CurrentPath, mp3_files,progressBar):
+    def MoodClassify(CurrentPath, mp3_files,progressBar,model):
         model_path = r"C:\Users\anesc\PycharmProjects\Music_Mood_Classifier\model\mfcc"
         num=0
         logits = None
@@ -32,32 +32,35 @@ class ML:
             MFCC_data = MF.flatten()
             MFCC_data = MFCC_data[np.newaxis, :]
             if num == 1 :
+                tf.reset_default_graph()
                 X = tf.placeholder(tf.float32, [None, row * col])
                 X_img = tf.reshape(X, [-1, row, col, 1])
-                W1 = tf.Variable(tf.random_normal([3, 3, 1, 32], stddev=0.01))
+
+                W1 = tf.Variable(tf.random_normal([2, 4, 1, 32], stddev=0.01))
                 L1 = tf.nn.conv2d(X_img, W1, strides=[1, 1, 2, 1], padding='SAME')
                 L1 = tf.nn.relu(L1)
-                L1 = tf.nn.max_pool(L1, ksize=[1, 3, 3, 1],
-                                    strides=[1, 2, 3, 1], padding='SAME')
+                L1 = tf.nn.max_pool(L1, ksize=[1, 1, 3, 1],
+                                    strides=[1, 1, 3, 1], padding='SAME')
 
-                W2 = tf.Variable(tf.random_normal([3, 3, 32, 64], stddev=0.01))
+                W2 = tf.Variable(tf.random_normal([2, 4, 32, 64], stddev=0.01))
                 L2 = tf.nn.conv2d(L1, W2, strides=[1, 1, 2, 1], padding='SAME')
                 L2 = tf.nn.relu(L2)
-                L2 = tf.nn.max_pool(L2, ksize=[1, 3, 3, 1],
-                                    strides=[1, 2, 3, 1], padding='SAME')
-                W3 = tf.Variable(tf.random_normal([3, 3, 64, 128], stddev=0.01))
+                L2 = tf.nn.max_pool(L2, ksize=[1, 1, 3, 1],
+                                    strides=[1, 1, 3, 1], padding='SAME')
+
+                W3 = tf.Variable(tf.random_normal([2, 4, 64, 128], stddev=0.01))
                 L3 = tf.nn.conv2d(L2, W3, strides=[1, 1, 2, 1], padding='SAME')
                 L3 = tf.nn.relu(L3)
-                L3 = tf.nn.max_pool(L3, ksize=[1, 3, 3, 1],
-                                    strides=[1, 2, 3, 1], padding='SAME')
-                L3_flat = tf.reshape(L3, [-1, 3 * 12 * 128])
-                W4 = tf.get_variable("W4", shape=[3 * 12 * 128, 4],
+                L3 = tf.nn.max_pool(L3, ksize=[1, 1, 3, 1],
+                                    strides=[1, 1, 3, 1], padding='SAME')
+                L3_flat = tf.reshape(L3, [-1, 20 * 12 * 128])
+
+                W4 = tf.get_variable("W4", shape=[20 * 12 * 128, 4],
                                      initializer=tf.contrib.layers.xavier_initializer())
                 b = tf.Variable(tf.random_normal([4]))
                 logits = tf.matmul(L3_flat, W4) + b
 
             with tf.Session() as sess:
-                # Load the weights and bias
                 saver = tf.train.Saver()
                 saver.restore(sess, model_path + "\\" + "model.ckpt")
                 result = sess.run(tf.argmax(logits, axis=1), feed_dict={X: MFCC_data[0:1]})
@@ -70,3 +73,5 @@ class ML:
                 elif (result == 3):
                     shutil.copy(file, CurrentPath + "/Calm")
             progressBar.setProperty("value",(int)((num/mp3_num)*100))
+            for rmv in model.findItems(item):
+                model.removeRow(rmv.row())
