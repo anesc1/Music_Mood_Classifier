@@ -89,7 +89,7 @@ class Ui_MainWindow(object):
 
     def pushButton_2Clicked(self):
         self.threadclass = ThreadClass(self.path,self.file_list_mp3,self.progressBar,self.model)
-        self.threadclass.start()
+        self.threadclass.start() 
 
 class ThreadClass(threading.Thread):
     def __init__(self, path, file_list_mp3, progressBar,model):
